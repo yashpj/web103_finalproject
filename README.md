@@ -1,49 +1,45 @@
-# [your app name here]
+# CinePhile
 
 CodePath WEB103 Final Project
 
-Designed and developed by: [your names here]
+Designed and developed by: [Yash, Ivan & Ahmed]
 
-🔗 Link to deployed app:
+🔗 Link to deployed app: [TBD]
 
 ## About
 
 ### Description and Purpose
-
-[text goes here]
+CinePhile is a social movie-discovery application designed to end the "what should we watch?" debate. It allows users to form private groups where members can suggest movies and collectively vote on them. By aggregating these votes, the app provides a dynamic "Top 3" list, ensuring that every movie night is backed by the group’s consensus.
 
 ### Inspiration
-
-[text goes here]
+The inspiration for CinePhile came from the common frustration of scrolling through streaming services for hours with friends without ever picking a film. While apps like Letterboxd are great for individual tracking, they lack a collaborative, democratic tool for small groups to make real-time decisions.
 
 ## Tech Stack
 
-Frontend:
+Frontend: React, React Router, Tailwind CSS
 
-Backend:
+Backend: Node.js, Express, PostgreSQL, Socket.io (for Live Voting)
 
 ## Features
 
-### [Name of Feature 1]
+### Group Creation & Admin Controls
+Users can create custom movie groups and serve as Admins to manage membership, ensuring a private space for friends or family.
 
-[short description goes here]
+### Collaborative Movie Suggestions
+Any member of a group can add a movie to the "Suggestion Pool," creating a shared wishlist of potential films to watch.
 
-[gif goes here]
+### Live Collaborative Voting
+Members can vote on movies in real-time. The app uses web sockets to ensure that when one person votes, the scores and rankings update instantly for everyone else in the group. (Stretch Feature)
 
-### [Name of Feature 2]
+### Dynamic Top 3 Leaderboard
+The app automatically calculates the average scores and displays the top 3 highest-rated movies in a prominent "Winner's Circle" section.
 
-[short description goes here]
+### Multi-Criteria Sorting
+Users can toggle between sorting movies by "Highest Rated" or "Most Recent" to better organize large suggestion lists. (Custom Feature)
 
-[gif goes here]
-
-### [Name of Feature 3]
-
-[short description goes here]
-
-[gif goes here]
-
-### [ADDITIONAL FEATURES GO HERE - ADD ALL FEATURES HERE IN THE FORMAT ABOVE; you will check these off and add gifs as you complete them]
+### Real-Time Input Validation
+The app validates movie entries to prevent duplicate suggestions within the same group and ensures all required fields are filled before submission. (Custom Feature)
 
 ## Installation Instructions
 
-[instructions go here]
+[Instructions will be added in later milestones]
