@@ -1,32 +1,25 @@
 # Milestone 1
 
-This document should be completed and submitted during **Unit 5** of this course. You **must** check off all completed tasks in this document in order to receive credit for your work.
-
 ## Checklist
 
-This unit, be sure to complete all tasks listed below. To complete a task, place an `x` between the brackets.
-
-- [ ] Read and understand all required features
-  - [ ] Understand you **must** implement **all** baseline features and **two** custom features
-- [ ] In `readme.md`: update app name to your app's name
-- [ ] In `readme.md`: add all group members' names
-- [ ] In `readme.md`: complete the **Description and Purpose** section
-- [ ] In `readme.md`: complete the **Inspiration** section
-- [ ] In `readme.md`: list a name and description for all features (minimum 6 for full points) you intend to include in your app (in future units, you will check off features as you complete them and add GIFs demonstrating the features)
-- [ ] In `planning/user_stories.md`: add all user stories (minimum 10 for full points)
-- [ ] In `planning/user_stories.md`: use 1-3 unique user roles in your user stories
-- [ ] In this document, complete all thre questions in the **Reflection** section below
+- [x] Read and understand all required features
+  - [x] Understand you **must** implement **all** baseline features and **two** custom features
+- [x] In `readme.md`: update app name to your app's name
+- [x] In `readme.md`: add all group members' names
+- [x] In `readme.md`: complete the **Description and Purpose** section
+- [x] In `readme.md`: complete the **Inspiration** section
+- [x] In `readme.md`: list a name and description for all features (minimum 6 for full points) you intend to include in your app
+- [x] In `planning/user_stories.md`: add all user stories (minimum 10 for full points)
+- [x] In `planning/user_stories.md`: use 1-3 unique user roles in your user stories
+- [x] In this document, complete all three questions in the **Reflection** section below
 
 ## Reflection
 
 ### 1. What went well during this unit?
-
-[👉🏾👉🏾👉🏾 your answer here]
+Our group was able to quickly align on a project idea that naturally fits the database requirements. We successfully identified how to integrate a "Live" component into our voting system, which we believe will make our capstone stand out.
 
 ### 2. What were some challenges your group faced in this unit?
-
-[👉🏾👉🏾👉🏾 your answer here]
+The main challenge was deciding how to handle the live voting aspect. We had to research whether to use standard polling or WebSockets and decided that WebSockets would provide the best user experience for a collaborative app.
 
 ### 3. What additional support will you need in upcoming units as you continue to work on your final project?
-
-[👉🏾👉🏾👉🏾 your answer here]
+We will need assistance setting up a WebSocket server (like Socket.io) to handle the live voting synchronization. Additionally, we’ll need help with the SQL logic to dynamically calculate the "Top 3" rankings as votes come in.
