@@ -1,21 +1,26 @@
 # Wireframes
 
-Reference the Creating an Entity Relationship Diagram final project guide in the course portal for more information about how to complete this deliverable.
-
 ## List of Pages
 
-[👉🏾👉🏾👉🏾 List the pages you expect to have in your app, with a ⭐ next to pages you have wireframed]
+- **Landing page** — authentication entry point
+- **Dashboard** — displays all joined groups
+- **New group (modal)** — form to create a new group
+- **Group page** — individual group's movie suggestions, voting interface, and top 3 movie leaderboard
+- **Add movie suggestion (modal)** — form for users to suggest a new movie
+- **Group settings and management** — manage group members
 
-## Wireframe 1: [page title]
+## Wireframe 1: Landing Page
 
-[👉🏾👉🏾👉🏾 include wireframe 1]
+![Wireframe of the landing page](assets/wf_landing.png)
 
-## Wireframe 2: [page title]
+## Wireframe 2: Dashboard
 
-[👉🏾👉🏾👉🏾 include wireframe 2]
+![Wireframe of the dashboard page](assets/wf_dashboard.png)
 
-## Wireframe 3: [page title]
+## Wireframe 3: Group Page
 
-[👉🏾👉🏾👉🏾 include wireframe 3]
+![Wireframe of the group page](assets/wf_group.png)
 
-[👉🏾👉🏾👉🏾 include more wireframes as desired]
+## Wireframe 4: Add Movie Suggestion
+
+![Wireframe of the add movie suggestion modal](assets/wf_add_movie.png)

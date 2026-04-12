@@ -2,7 +2,7 @@
 
 This diagram visualizes the database schema for CinephileConnect, including the many-to-many relationship between users and groups.
 
-![CinephileConnect ERD](./Entity-Relations.png)
+![CinephileConnect ERD](./assets/Entity-Relations.png)
 
 ## Description of Tables
 
