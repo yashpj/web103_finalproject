@@ -22,22 +22,30 @@ Backend: Node.js, Express, PostgreSQL, Socket.io (for Live Voting)
 
 ## Features
 
-### Group Creation & Admin Controls
+### Group Creation & Admin Controls ✅
 Users can create custom movie groups and serve as Admins to manage membership, ensuring a private space for friends or family.
 
-### Collaborative Movie Suggestions
+![alt text](demo/group-creation.gif)
+
+### Collaborative Movie Suggestions ✅
 Any member of a group can add a movie to the "Suggestion Pool," creating a shared wishlist of potential films to watch.
+
+![alt text](demo/suggestions.gif)
 
 ### Live Collaborative Voting
 Members can vote on movies in real-time. The app uses web sockets to ensure that when one person votes, the scores and rankings update instantly for everyone else in the group. (Stretch Feature)
 
-### Dynamic Top 3 Leaderboard
+### Dynamic Top 3 Leaderboard ✅
 The app automatically calculates the average scores and displays the top 3 highest-rated movies in a prominent "Winner's Circle" section.
 
-### Multi-Criteria Sorting
+![alt text](demo/leaderboard.gif)
+
+### Multi-Criteria Sorting ✅
 Users can toggle between sorting movies by "Highest Rated" or "Most Recent" to better organize large suggestion lists. (Custom Feature)
 
-### Real-Time Input Validation
+![alt text](demo/sorting.gif)
+
+### Real-Time Input Validation 
 The app validates movie entries to prevent duplicate suggestions within the same group and ensures all required fields are filled before submission. (Custom Feature)
 
 ## Installation Instructions
