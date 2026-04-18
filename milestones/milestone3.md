@@ -22,20 +22,22 @@ You will need to reference the GitHub Project Management guide in the course por
 
 ### 1. What went well during this unit?
 
-[👉🏾👉🏾👉🏾 your answer here]
+We successfully created issues and moved them around on the kanban board.
+GIF pronounciation discussion was very enlightening.
 
 ### 2. What were some challenges your group faced in this unit?
 
-[👉🏾👉🏾👉🏾 your answer here]
+We learned about Github Kanban feature which is called projects.
+We also faced problem in understanding milestone 3 checklist.
 
 ### Did you finish all of your tasks in your sprint plan for this week? If you did not finish all of the planned tasks, how would you prioritize the remaining tasks on your list?
 
-[👉🏾👉🏾👉🏾 your answer here]
+We think we are on the right track. We have completed the basic tasks needed for scaffolding and user/group generation.
 
 ### Which features and user stories would you consider “at risk”? How will you change your plan if those items remain “at risk”?
 
-[👉🏾👉🏾👉🏾 your answer here]
+We are still discussing about Live Voting through sockets
 
 ### 5. What additional support will you need in upcoming units as you continue to work on your final project?
 
-[👉🏾👉🏾👉🏾 your answer here]
+We think we are good for now but will reach out if we are blocked.
