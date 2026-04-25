@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { io } from 'socket.io-client'
 import { getGroupById } from '../services/GroupsAPI'
@@ -18,6 +18,14 @@ const GroupPage = ({ currentUser }) => {
   const [showForm, setShowForm] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [now, setNow] = useState(new Date())
+  const socketRef = useRef(null)
+
+  // Tick every second to keep the deadline countdown live
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   const loadData = async () => {
     try {
@@ -46,11 +54,12 @@ const GroupPage = ({ currentUser }) => {
   // Socket.io — real-time vote updates (stretch feature)
   useEffect(() => {
     const socket = io()
+    socketRef.current = socket
     socket.emit('join-group', groupId)
 
     socket.on('vote-updated', () => {
-      // Refresh suggestions to get updated avg_rating counts
-      getSuggestions(groupId, sort).then(setSuggestions).catch(() => {})
+      // Refresh all data so voters_count and avg_rating both update
+      loadData()
     })
 
     socket.on('suggestion-updated', () => {
@@ -60,10 +69,11 @@ const GroupPage = ({ currentUser }) => {
     return () => {
       socket.emit('leave-group', groupId)
       socket.disconnect()
+      socketRef.current = null
     }
   }, [groupId, sort])
 
-  const handleVote = async (suggestionId, rating, socket) => {
+  const handleVote = async (suggestionId, rating) => {
     try {
       const updatedVote = await castVote({
         suggestion_id: suggestionId,
@@ -99,10 +109,8 @@ const GroupPage = ({ currentUser }) => {
         })
       )
 
-      // Notify other clients
-      const sock = io()
-      sock.emit('vote-cast', { groupId, suggestionId, rating })
-      sock.disconnect()
+      // Notify other clients via the persistent socket
+      socketRef.current?.emit('vote-cast', { groupId, suggestionId, rating })
     } catch (err) {
       console.error('Failed to cast vote:', err.message)
     }
@@ -111,10 +119,12 @@ const GroupPage = ({ currentUser }) => {
   const handleSuggestionAdded = () => {
     setShowForm(false)
     loadData()
+    socketRef.current?.emit('suggestion-added', { groupId })
   }
 
   const handleSuggestionDeleted = () => {
     loadData()
+    socketRef.current?.emit('suggestion-added', { groupId })
   }
 
   if (isLoading) {
@@ -135,6 +145,23 @@ const GroupPage = ({ currentUser }) => {
 
   const top3 = calculateTop3(suggestions)
   const isAdmin = group.admin_id === currentUser.id
+  const deadline = group.voting_deadline ? new Date(group.voting_deadline) : null
+  const isVotingClosed = deadline ? now >= deadline : false
+  const votersCount = group.voters_count ?? 0
+  const memberCount = group.members?.length ?? 0
+
+  const formatDeadline = () => {
+    if (!deadline) return null
+    if (isVotingClosed) return 'Voting closed'
+    const diff = deadline - now
+    const h = Math.floor(diff / 3600000)
+    const m = Math.floor((diff % 3600000) / 60000)
+    const s = Math.floor((diff % 60000) / 1000)
+    if (h > 24) return `Closes ${deadline.toLocaleDateString()} ${deadline.toLocaleTimeString()}`
+    if (h > 0) return `Closes in ${h}h ${m}m`
+    if (m > 0) return `Closes in ${m}m ${s}s`
+    return `Closes in ${s}s`
+  }
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
@@ -145,6 +172,16 @@ const GroupPage = ({ currentUser }) => {
           <p className="mt-1 text-sm text-gray-500">
             Invite code: <span className="font-mono text-gray-400">{group.invite_code}</span>
           </p>
+          <div className="mt-2 flex flex-wrap gap-3">
+            <span className="text-sm text-gray-400">
+              {votersCount} of {memberCount} member{memberCount !== 1 ? 's' : ''} voted
+            </span>
+            {formatDeadline() && (
+              <span className={`text-sm font-medium ${isVotingClosed ? 'text-red-400' : 'text-yellow-400'}`}>
+                {formatDeadline()}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex gap-2">
           {isAdmin && (
@@ -208,6 +245,7 @@ const GroupPage = ({ currentUser }) => {
               onVote={(rating) => handleVote(suggestion.id, rating)}
               onDeleted={handleSuggestionDeleted}
               onUpdated={loadData}
+              isVotingClosed={isVotingClosed}
             />
           ))}
         </div>

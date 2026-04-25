@@ -7,6 +7,7 @@ const GroupModal = ({ mode, currentUser, onClose, onSuccess }) => {
 
   const [groupName, setGroupName] = useState('')
   const [inviteCode, setInviteCode] = useState('')
+  const [deadline, setDeadline] = useState('')
   const [error, setError] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -29,7 +30,11 @@ const GroupModal = ({ mode, currentUser, onClose, onSuccess }) => {
 
     try {
       if (isCreate) {
-        await createGroup({ group_name: groupName.trim(), admin_id: currentUser.id })
+        await createGroup({
+          group_name: groupName.trim(),
+          admin_id: currentUser.id,
+          voting_deadline: deadline || null
+        })
       } else {
         await joinGroup(currentUser.id, inviteCode.trim())
       }
@@ -68,20 +73,34 @@ const GroupModal = ({ mode, currentUser, onClose, onSuccess }) => {
           )}
 
           {isCreate ? (
-            <div>
-              <label className="mb-1 block text-sm text-gray-400" htmlFor="groupName">
-                Group Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                id="groupName"
-                type="text"
-                value={groupName}
-                onChange={(e) => setGroupName(e.target.value)}
-                placeholder="e.g. Friday Night Flicks"
-                className="w-full rounded-lg bg-gray-800 px-4 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-red-500"
-                autoFocus
-              />
-            </div>
+            <>
+              <div>
+                <label className="mb-1 block text-sm text-gray-400" htmlFor="groupName">
+                  Group Name <span className="text-red-400">*</span>
+                </label>
+                <input
+                  id="groupName"
+                  type="text"
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                  placeholder="e.g. Friday Night Flicks"
+                  className="w-full rounded-lg bg-gray-800 px-4 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-red-500"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm text-gray-400" htmlFor="deadline">
+                  Voting Deadline <span className="text-gray-600">(optional)</span>
+                </label>
+                <input
+                  id="deadline"
+                  type="datetime-local"
+                  value={deadline}
+                  onChange={(e) => setDeadline(e.target.value)}
+                  className="w-full rounded-lg bg-gray-800 px-4 py-2 text-white outline-none focus:ring-2 focus:ring-red-500 [color-scheme:dark]"
+                />
+              </div>
+            </>
           ) : (
             <div>
               <label className="mb-1 block text-sm text-gray-400" htmlFor="inviteCode">
