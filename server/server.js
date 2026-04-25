@@ -9,6 +9,7 @@ import suggestionsRouter from './routes/suggestionsRoutes.js'
 import votesRouter from './routes/votesRoutes.js'
 import usersRouter from './routes/usersRoutes.js'
 import moviesRouter from './routes/moviesRoutes.js'
+import { pool } from './config/database.js'
 
 dotenv.config()
 
@@ -68,8 +69,22 @@ if (process.env.NODE_ENV === 'production') {
   )
 }
 
-httpServer.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`)
+// Run any pending schema migrations before accepting traffic
+async function runMigrations() {
+  try {
+    await pool.query(`
+      ALTER TABLE groups ADD COLUMN IF NOT EXISTS voting_deadline TIMESTAMP
+    `)
+    console.log('Migrations OK')
+  } catch (err) {
+    console.error('Migration error:', err.message)
+  }
+}
+
+runMigrations().then(() => {
+  httpServer.listen(PORT, () => {
+    console.log(`Server listening on http://localhost:${PORT}`)
+  })
 })
 
 export { io }
