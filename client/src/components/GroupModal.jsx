@@ -29,9 +29,9 @@ const GroupModal = ({ mode, currentUser, onClose, onSuccess }) => {
 
     try {
       if (isCreate) {
-        await createGroup({ group_name: groupName.trim(), admin_id: currentUser.id })
+        await createGroup({ group_name: groupName.trim() })
       } else {
-        await joinGroup(currentUser.id, inviteCode.trim())
+        await joinGroup(inviteCode.trim())
       }
       onSuccess()
     } catch (err) {

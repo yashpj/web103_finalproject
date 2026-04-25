@@ -12,7 +12,7 @@ const Dashboard = ({ currentUser }) => {
 
   const loadGroups = async () => {
     try {
-      const data = await getUserGroups(currentUser.id)
+      const data = await getUserGroups()
       setGroups(data)
     } catch (err) {
       setError('Failed to load groups.')
@@ -23,7 +23,7 @@ const Dashboard = ({ currentUser }) => {
 
   useEffect(() => {
     loadGroups()
-  }, [currentUser.id])
+  }, [])
 
   const openCreate = () => {
     setModalMode('create')

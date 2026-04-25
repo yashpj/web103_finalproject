@@ -1,15 +1,14 @@
-const BASE_URL = '/api'
+import { BASE_URL, authFetch } from './api'
 
 export const getSuggestions = async (groupId, sort = 'recent') => {
-  const res = await fetch(`${BASE_URL}/groups/${groupId}/suggestions?sort=${sort}`)
+  const res = await authFetch(`${BASE_URL}/groups/${groupId}/suggestions?sort=${sort}`)
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
 
 export const createSuggestion = async (groupId, data) => {
-  const res = await fetch(`${BASE_URL}/groups/${groupId}/suggestions`, {
+  const res = await authFetch(`${BASE_URL}/groups/${groupId}/suggestions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   })
   if (!res.ok) {
@@ -20,9 +19,8 @@ export const createSuggestion = async (groupId, data) => {
 }
 
 export const updateSuggestion = async (suggestionId, data) => {
-  const res = await fetch(`${BASE_URL}/suggestions/${suggestionId}`, {
+  const res = await authFetch(`${BASE_URL}/suggestions/${suggestionId}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   })
   if (!res.ok) {
@@ -32,11 +30,9 @@ export const updateSuggestion = async (suggestionId, data) => {
   return res.json()
 }
 
-export const deleteSuggestion = async (suggestionId, userId) => {
-  const res = await fetch(`${BASE_URL}/suggestions/${suggestionId}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: userId })
+export const deleteSuggestion = async (suggestionId) => {
+  const res = await authFetch(`${BASE_URL}/suggestions/${suggestionId}`, {
+    method: 'DELETE'
   })
   if (!res.ok) {
     const err = await res.json()

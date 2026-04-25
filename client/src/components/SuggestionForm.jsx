@@ -22,7 +22,6 @@ const SuggestionForm = ({ groupId, currentUser, existingTitles, onClose, onSucce
 
     try {
       await createSuggestion(groupId, {
-        user_id: currentUser.id,
         title: title.trim(),
         tmdb_id: tmdbId ? parseInt(tmdbId) : null,
         poster_path: posterPath.trim() || null

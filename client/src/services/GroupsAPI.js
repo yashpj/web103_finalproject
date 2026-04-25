@@ -1,21 +1,25 @@
-const BASE_URL = '/api'
+import { BASE_URL, authFetch } from './api'
 
-export const getUserGroups = async (userId) => {
-  const res = await fetch(`${BASE_URL}/users/${userId}/groups`)
+export const getUserGroups = async () => {
+  const res = await authFetch(`${BASE_URL}/users/me/groups`)
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
 
 export const getGroupById = async (groupId) => {
-  const res = await fetch(`${BASE_URL}/groups/${groupId}`)
-  if (!res.ok) throw new Error(await res.text())
+  const res = await authFetch(`${BASE_URL}/groups/${groupId}`)
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    const error = new Error(err.error || 'Failed to fetch group')
+    error.status = res.status
+    throw error
+  }
   return res.json()
 }
 
 export const createGroup = async (groupData) => {
-  const res = await fetch(`${BASE_URL}/groups`, {
+  const res = await authFetch(`${BASE_URL}/groups`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(groupData)
   })
   if (!res.ok) {
@@ -25,11 +29,10 @@ export const createGroup = async (groupData) => {
   return res.json()
 }
 
-export const joinGroup = async (userId, inviteCode) => {
-  const res = await fetch(`${BASE_URL}/groups/join`, {
+export const joinGroup = async (inviteCode) => {
+  const res = await authFetch(`${BASE_URL}/groups/join`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: userId, invite_code: inviteCode })
+    body: JSON.stringify({ invite_code: inviteCode })
   })
   if (!res.ok) {
     const err = await res.json()
@@ -38,11 +41,9 @@ export const joinGroup = async (userId, inviteCode) => {
   return res.json()
 }
 
-export const removeMember = async (groupId, userId, adminId) => {
-  const res = await fetch(`${BASE_URL}/groups/${groupId}/members/${userId}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ admin_id: adminId })
+export const removeMember = async (groupId, userId) => {
+  const res = await authFetch(`${BASE_URL}/groups/${groupId}/members/${userId}`, {
+    method: 'DELETE'
   })
   if (!res.ok) {
     const err = await res.json()
@@ -51,11 +52,9 @@ export const removeMember = async (groupId, userId, adminId) => {
   return res.json()
 }
 
-export const deleteGroup = async (groupId, adminId) => {
-  const res = await fetch(`${BASE_URL}/groups/${groupId}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ admin_id: adminId })
+export const deleteGroup = async (groupId) => {
+  const res = await authFetch(`${BASE_URL}/groups/${groupId}`, {
+    method: 'DELETE'
   })
   if (!res.ok) {
     const err = await res.json()

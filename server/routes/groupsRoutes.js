@@ -7,14 +7,15 @@ import {
   removeMember,
   deleteGroup
 } from '../controllers/groupsController.js'
+import { authMiddleware } from '../middleware/auth.js'
 
 const router = express.Router()
 
-router.get('/users/:userId/groups', getUserGroups)
-router.get('/groups/:id', getGroupById)
-router.post('/groups', createGroup)
-router.post('/groups/join', joinGroup)
-router.delete('/groups/:groupId/members/:userId', removeMember)
-router.delete('/groups/:id', deleteGroup)
+router.get('/users/me/groups', authMiddleware, getUserGroups)
+router.get('/groups/:id', authMiddleware, getGroupById)
+router.post('/groups', authMiddleware, createGroup)
+router.post('/groups/join', authMiddleware, joinGroup)
+router.delete('/groups/:groupId/members/:userId', authMiddleware, removeMember)
+router.delete('/groups/:id', authMiddleware, deleteGroup)
 
 export default router

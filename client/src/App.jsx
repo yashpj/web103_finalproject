@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage'
 import Dashboard from './pages/Dashboard'
 import GroupPage from './pages/GroupPage'
 import GroupSettings from './pages/GroupSettings'
+import { logoutUser } from './services/UsersAPI'
 import './App.css'
 
 const App = () => {
@@ -18,7 +19,8 @@ const App = () => {
     setCurrentUser(user)
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logoutUser()
     localStorage.removeItem('cinephile_user')
     setCurrentUser(null)
   }

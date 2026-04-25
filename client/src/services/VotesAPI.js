@@ -1,18 +1,14 @@
-const BASE_URL = '/api'
+import { BASE_URL, authFetch } from './api'
 
-export const getVotesByGroup = async (groupId, userId = null) => {
-  const url = userId
-    ? `${BASE_URL}/groups/${groupId}/votes?user_id=${userId}`
-    : `${BASE_URL}/groups/${groupId}/votes`
-  const res = await fetch(url)
+export const getVotesByGroup = async (groupId) => {
+  const res = await authFetch(`${BASE_URL}/groups/${groupId}/votes`)
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
 
 export const castVote = async (voteData) => {
-  const res = await fetch(`${BASE_URL}/votes`, {
+  const res = await authFetch(`${BASE_URL}/votes`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(voteData)
   })
   if (!res.ok) {
@@ -22,11 +18,9 @@ export const castVote = async (voteData) => {
   return res.json()
 }
 
-export const removeVote = async (voteId, userId) => {
-  const res = await fetch(`${BASE_URL}/votes/${voteId}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: userId })
+export const removeVote = async (voteId) => {
+  const res = await authFetch(`${BASE_URL}/votes/${voteId}`, {
+    method: 'DELETE'
   })
   if (!res.ok) {
     const err = await res.json()
