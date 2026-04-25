@@ -42,7 +42,18 @@ export const getGroupById = async (req, res) => {
       ORDER BY m.joined_at ASC
     `, [id])
 
-    res.json({ ...groupResult.rows[0], members: membersResult.rows })
+    const voterResult = await pool.query(`
+      SELECT COUNT(DISTINCT v.user_id) AS voters_count
+      FROM votes v
+      JOIN suggestions s ON v.suggestion_id = s.id
+      WHERE s.group_id = $1
+    `, [id])
+
+    res.json({
+      ...groupResult.rows[0],
+      members: membersResult.rows,
+      voters_count: parseInt(voterResult.rows[0].voters_count)
+    })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -50,7 +61,7 @@ export const getGroupById = async (req, res) => {
 
 // POST /api/groups — create a new group, auto-enroll the admin
 export const createGroup = async (req, res) => {
-  const { group_name, admin_id } = req.body
+  const { group_name, admin_id, voting_deadline } = req.body
   if (!group_name || !admin_id) {
     return res.status(400).json({ error: 'Group name and admin ID are required.' })
   }
@@ -61,8 +72,8 @@ export const createGroup = async (req, res) => {
     await client.query('BEGIN')
 
     const groupResult = await client.query(
-      'INSERT INTO groups (group_name, admin_id, invite_code) VALUES ($1, $2, $3) RETURNING *',
-      [group_name.trim(), admin_id, invite_code]
+      'INSERT INTO groups (group_name, admin_id, invite_code, voting_deadline) VALUES ($1, $2, $3, $4) RETURNING *',
+      [group_name.trim(), admin_id, invite_code, voting_deadline || null]
     )
     const newGroup = groupResult.rows[0]
 
@@ -147,6 +158,30 @@ export const removeMember = async (req, res) => {
     }
 
     res.json({ message: 'Member removed successfully' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
+// PUT /api/groups/:id/deadline — admin sets or clears the voting deadline
+export const updateDeadline = async (req, res) => {
+  const { id } = req.params
+  const { admin_id, voting_deadline } = req.body
+
+  try {
+    const groupResult = await pool.query('SELECT admin_id FROM groups WHERE id = $1', [id])
+    if (groupResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Group not found' })
+    }
+    if (groupResult.rows[0].admin_id !== parseInt(admin_id)) {
+      return res.status(403).json({ error: 'Only the group admin can update the deadline.' })
+    }
+
+    const result = await pool.query(
+      'UPDATE groups SET voting_deadline = $1 WHERE id = $2 RETURNING *',
+      [voting_deadline || null, id]
+    )
+    res.json(result.rows[0])
   } catch (error) {
     res.status(500).json({ error: error.message })
   }

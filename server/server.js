@@ -8,6 +8,7 @@ import groupsRouter from './routes/groupsRoutes.js'
 import suggestionsRouter from './routes/suggestionsRoutes.js'
 import votesRouter from './routes/votesRoutes.js'
 import usersRouter from './routes/usersRoutes.js'
+import moviesRouter from './routes/moviesRoutes.js'
 
 dotenv.config()
 
@@ -32,6 +33,7 @@ app.use('/api', groupsRouter)
 app.use('/api', suggestionsRouter)
 app.use('/api', votesRouter)
 app.use('/api', usersRouter)
+app.use('/api', moviesRouter)
 
 // Socket.io — real-time voting (stretch feature)
 io.on('connection', (socket) => {

@@ -51,6 +51,19 @@ export const removeMember = async (groupId, userId, adminId) => {
   return res.json()
 }
 
+export const updateDeadline = async (groupId, adminId, voting_deadline) => {
+  const res = await fetch(`${BASE_URL}/groups/${groupId}/deadline`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ admin_id: adminId, voting_deadline: voting_deadline || null })
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.error || 'Failed to update deadline')
+  }
+  return res.json()
+}
+
 export const deleteGroup = async (groupId, adminId) => {
   const res = await fetch(`${BASE_URL}/groups/${groupId}`, {
     method: 'DELETE',

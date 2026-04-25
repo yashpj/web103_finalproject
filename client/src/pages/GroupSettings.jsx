@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { getGroupById, removeMember, deleteGroup } from '../services/GroupsAPI'
+import { getGroupById, removeMember, deleteGroup, updateDeadline } from '../services/GroupsAPI'
 
 const GroupSettings = ({ currentUser }) => {
   const { id: groupId } = useParams()
@@ -9,6 +9,8 @@ const GroupSettings = ({ currentUser }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [actionError, setActionError] = useState(null)
+  const [deadlineInput, setDeadlineInput] = useState('')
+  const [deadlineSaving, setDeadlineSaving] = useState(false)
 
   const loadGroup = async () => {
     try {
@@ -46,6 +48,20 @@ const GroupSettings = ({ currentUser }) => {
       navigate('/dashboard')
     } catch (err) {
       setActionError(err.message)
+    }
+  }
+
+  const handleDeadlineSave = async () => {
+    setDeadlineSaving(true)
+    setActionError(null)
+    try {
+      const updated = await updateDeadline(groupId, currentUser.id, deadlineInput || null)
+      setGroup(prev => ({ ...prev, voting_deadline: updated.voting_deadline }))
+      setDeadlineInput('')
+    } catch (err) {
+      setActionError(err.message)
+    } finally {
+      setDeadlineSaving(false)
     }
   }
 
@@ -137,6 +153,49 @@ const GroupSettings = ({ currentUser }) => {
           ))}
         </ul>
       </section>
+
+      {/* Voting deadline */}
+      {isAdmin && (
+        <section className="mb-8 rounded-2xl bg-gray-900 p-6">
+          <h2 className="mb-1 text-lg font-semibold text-white">Voting Deadline</h2>
+          <p className="mb-4 text-sm text-gray-400">
+            After this time, members can no longer cast or change votes.
+          </p>
+
+          {group.voting_deadline && (
+            <div className="mb-4 flex items-center justify-between rounded-lg bg-gray-800 px-4 py-3">
+              <span className="text-sm text-gray-300">
+                Current: <span className="text-white">
+                  {new Date(group.voting_deadline).toLocaleString()}
+                </span>
+              </span>
+              <button
+                onClick={() => handleDeadlineSave('')}
+                disabled={deadlineSaving}
+                className="text-xs text-red-400 hover:text-red-300 disabled:opacity-50"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <input
+              type="datetime-local"
+              value={deadlineInput}
+              onChange={(e) => setDeadlineInput(e.target.value)}
+              className="flex-1 rounded-lg bg-gray-800 px-4 py-2 text-white outline-none focus:ring-2 focus:ring-red-500 [color-scheme:dark]"
+            />
+            <button
+              onClick={handleDeadlineSave}
+              disabled={deadlineSaving || !deadlineInput}
+              className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-500 disabled:opacity-50"
+            >
+              {deadlineSaving ? 'Saving...' : 'Set'}
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* Danger zone */}
       {isAdmin && (

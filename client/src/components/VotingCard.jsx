@@ -27,7 +27,7 @@ const StarRating = ({ value, onChange }) => {
   )
 }
 
-const VotingCard = ({ suggestion, currentUser, userVote, onVote, onDeleted, onUpdated }) => {
+const VotingCard = ({ suggestion, currentUser, userVote, onVote, onDeleted, onUpdated, isVotingClosed }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState(suggestion.title)
   const [editPoster, setEditPoster] = useState(suggestion.poster_path || '')
@@ -121,7 +121,10 @@ const VotingCard = ({ suggestion, currentUser, userVote, onVote, onDeleted, onUp
               </p>
             </div>
             <div className="flex items-center gap-3 mt-2">
-              <StarRating value={currentRating} onChange={onVote} />
+              {isVotingClosed
+                ? <span className="text-xs text-gray-500 italic">Voting closed</span>
+                : <StarRating value={currentRating} onChange={onVote} />
+              }
               {parseFloat(suggestion.avg_rating) > 0 && (
                 <span className="text-sm text-yellow-400">
                   ★ {parseFloat(suggestion.avg_rating).toFixed(1)}
