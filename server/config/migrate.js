@@ -12,7 +12,15 @@ async function migrate() {
       ALTER TABLE users
         ADD COLUMN IF NOT EXISTS password_hash TEXT;
     `)
-    console.log('Migration complete: password_hash column added (nullable for existing rows).')
+    await pool.query(`
+      ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS github_id TEXT UNIQUE;
+    `)
+    await pool.query(`
+      ALTER TABLE users
+        ALTER COLUMN email DROP NOT NULL;
+    `)
+    console.log('Migration complete.')
   } catch (err) {
     console.error('Migration error:', err)
   } finally {

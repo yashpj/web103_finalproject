@@ -135,3 +135,113 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ error: error.message })
   }
 }
+
+// GET /api/auth/me
+export const getMe = async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, username, email, created_at FROM users WHERE id = $1',
+      [req.user.id]
+    )
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+    res.json({ user: result.rows[0] })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+}
+
+// GET /api/auth/github
+export const githubAuth = (req, res) => {
+  const state = jwt.sign({ ts: Date.now() }, process.env.JWT_SECRET, { expiresIn: '10m' })
+  const params = new URLSearchParams({
+    client_id: process.env.GITHUB_CLIENT_ID,
+    redirect_uri: process.env.GITHUB_CALLBACK_URL,
+    scope: 'user:email',
+    state
+  })
+  res.redirect(`https://github.com/login/oauth/authorize?${params}`)
+}
+
+// GET /api/auth/github/callback
+export const githubCallback = async (req, res) => {
+  const { code, state } = req.query
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
+
+  try {
+    jwt.verify(state, process.env.JWT_SECRET)
+  } catch {
+    return res.redirect(`${frontendUrl}/?error=invalid_state`)
+  }
+
+  try {
+    // Exchange code for access token
+    const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code,
+        redirect_uri: process.env.GITHUB_CALLBACK_URL
+      })
+    })
+    const tokenData = await tokenRes.json()
+    if (!tokenData.access_token) {
+      return res.redirect(`${frontendUrl}/?error=github_token_failed`)
+    }
+
+    const ghHeaders = {
+      Authorization: `Bearer ${tokenData.access_token}`,
+      Accept: 'application/json'
+    }
+
+    // Fetch GitHub user profile and emails in parallel
+    const [profileRes, emailsRes] = await Promise.all([
+      fetch('https://api.github.com/user', { headers: ghHeaders }),
+      fetch('https://api.github.com/user/emails', { headers: ghHeaders })
+    ])
+    const profile = await profileRes.json()
+    const emails = await emailsRes.json()
+
+    const primaryEmail = Array.isArray(emails)
+      ? (emails.find((e) => e.primary && e.verified)?.email ?? emails[0]?.email ?? null)
+      : null
+
+    const githubId = String(profile.id)
+    const username = profile.login
+
+    // Find existing user by github_id, or by email, or create new
+    let user = null
+    const byGithubId = await pool.query('SELECT id, username, email, created_at FROM users WHERE github_id = $1', [githubId])
+    if (byGithubId.rows.length > 0) {
+      user = byGithubId.rows[0]
+    } else if (primaryEmail) {
+      const byEmail = await pool.query('SELECT id, username, email, created_at FROM users WHERE email = $1', [primaryEmail])
+      if (byEmail.rows.length > 0) {
+        // Link existing account
+        await pool.query('UPDATE users SET github_id = $1 WHERE id = $2', [githubId, byEmail.rows[0].id])
+        user = byEmail.rows[0]
+      }
+    }
+
+    if (!user) {
+      // Create new user — handle username conflicts by appending github id
+      let finalUsername = username
+      const taken = await pool.query('SELECT id FROM users WHERE username = $1', [username])
+      if (taken.rows.length > 0) finalUsername = `${username}_gh${githubId}`
+
+      const inserted = await pool.query(
+        'INSERT INTO users (username, email, github_id) VALUES ($1, $2, $3) RETURNING id, username, email, created_at',
+        [finalUsername, primaryEmail, githubId]
+      )
+      user = inserted.rows[0]
+    }
+
+    setAuthCookie(res, user)
+    res.redirect(`${frontendUrl}/dashboard`)
+  } catch (error) {
+    res.redirect(`${frontendUrl}/?error=server_error`)
+  }
+}
