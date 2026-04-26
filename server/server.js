@@ -3,6 +3,8 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 import path from 'path'
 import dotenv from 'dotenv'
+import cookieParser from 'cookie-parser'
+import rateLimit from 'express-rate-limit'
 
 import groupsRouter from './routes/groupsRoutes.js'
 import suggestionsRouter from './routes/suggestionsRoutes.js'
@@ -14,19 +16,31 @@ import { pool } from './config/database.js'
 dotenv.config()
 
 const PORT = process.env.PORT || 3000
+const isProd = process.env.NODE_ENV === 'production'
 
 const app = express()
 const httpServer = createServer(app)
 
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : '*'
+    origin: isProd ? false : 'http://localhost:5173',
+    credentials: true
   }
 })
 
 app.use(express.json())
+app.use(cookieParser())
 
-if (process.env.NODE_ENV === 'production') {
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  message: { error: 'Too many attempts. Please try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false
+})
+app.use('/api/auth', authLimiter)
+
+if (isProd) {
   app.use(express.static('public'))
 }
 
@@ -35,6 +49,11 @@ app.use('/api', suggestionsRouter)
 app.use('/api', votesRouter)
 app.use('/api', usersRouter)
 app.use('/api', moviesRouter)
+
+app.post('/api/auth/logout', (req, res) => {
+  res.clearCookie('token', { httpOnly: true, sameSite: 'lax', secure: isProd })
+  res.json({ message: 'Logged out' })
+})
 
 // Socket.io — real-time voting (stretch feature)
 io.on('connection', (socket) => {
