@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { deleteSuggestion, updateSuggestion } from '../services/SuggestionsAPI'
+import MovieDetailModal from './MovieDetailModal'
 
 const TMDB_IMG = 'https://image.tmdb.org/t/p/w92'
 
@@ -32,6 +33,7 @@ const VotingCard = ({ suggestion, currentUser, userVote, onVote, onDeleted, onUp
   const [editTitle, setEditTitle] = useState(suggestion.title)
   const [editPoster, setEditPoster] = useState(suggestion.poster_path || '')
   const [editError, setEditError] = useState(null)
+  const [showDetail, setShowDetail] = useState(false)
 
   const isOwner = suggestion.user_id === currentUser.id
   const currentRating = userVote ? parseInt(userVote.rating) : 0
@@ -68,17 +70,24 @@ const VotingCard = ({ suggestion, currentUser, userVote, onVote, onDeleted, onUp
   return (
     <div className="flex gap-4 rounded-2xl bg-gray-900 p-4">
       {/* Poster */}
-      {suggestion.poster_path ? (
-        <img
-          src={`${TMDB_IMG}${suggestion.poster_path}`}
-          alt={suggestion.title}
-          className="h-20 w-14 flex-shrink-0 rounded object-cover"
-        />
-      ) : (
-        <div className="flex h-20 w-14 flex-shrink-0 items-center justify-center rounded bg-gray-800 text-2xl">
-          🎞️
-        </div>
-      )}
+      <button
+        type="button"
+        onClick={() => setShowDetail(true)}
+        className="flex-shrink-0 focus:outline-none"
+        aria-label={`View details for ${suggestion.title}`}
+      >
+        {suggestion.poster_path ? (
+          <img
+            src={`${TMDB_IMG}${suggestion.poster_path}`}
+            alt={suggestion.title}
+            className="h-20 w-14 rounded object-cover transition hover:opacity-80"
+          />
+        ) : (
+          <div className="flex h-20 w-14 items-center justify-center rounded bg-gray-800 text-2xl transition hover:opacity-80">
+            🎞️
+          </div>
+        )}
+      </button>
 
       {/* Info */}
       <div className="flex flex-1 flex-col justify-between min-w-0">
@@ -115,7 +124,15 @@ const VotingCard = ({ suggestion, currentUser, userVote, onVote, onDeleted, onUp
         ) : (
           <>
             <div>
-              <h3 className="font-medium text-white truncate">{suggestion.title}</h3>
+              <button
+                type="button"
+                onClick={() => setShowDetail(true)}
+                className="text-left focus:outline-none"
+              >
+                <h3 className="font-medium text-white truncate hover:text-red-400 transition-colors">
+                  {suggestion.title}
+                </h3>
+              </button>
               <p className="text-xs text-gray-500">
                 Suggested by {suggestion.suggested_by}
               </p>
@@ -156,6 +173,10 @@ const VotingCard = ({ suggestion, currentUser, userVote, onVote, onDeleted, onUp
             🗑️
           </button>
         </div>
+      )}
+
+      {showDetail && (
+        <MovieDetailModal suggestion={suggestion} onClose={() => setShowDetail(false)} />
       )}
     </div>
   )
