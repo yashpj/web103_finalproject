@@ -39,7 +39,7 @@ const VotingCard = ({ suggestion, currentUser, userVote, onVote, onDeleted, onUp
   const handleDelete = async () => {
     if (!window.confirm(`Remove "${suggestion.title}"?`)) return
     try {
-      await deleteSuggestion(suggestion.id, currentUser.id)
+      await deleteSuggestion(suggestion.id)
       onDeleted()
     } catch (err) {
       console.error(err.message)
@@ -53,7 +53,6 @@ const VotingCard = ({ suggestion, currentUser, userVote, onVote, onDeleted, onUp
     }
     try {
       await updateSuggestion(suggestion.id, {
-        user_id: currentUser.id,
         title: editTitle.trim(),
         poster_path: editPoster.trim() || null
       })

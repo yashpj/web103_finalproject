@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { io } from 'socket.io-client'
 import { getGroupById } from '../services/GroupsAPI'
 import { getSuggestions } from '../services/SuggestionsAPI'
@@ -11,6 +11,7 @@ import SuggestionForm from '../components/SuggestionForm'
 
 const GroupPage = ({ currentUser }) => {
   const { id: groupId } = useParams()
+  const navigate = useNavigate()
   const [group, setGroup] = useState(null)
   const [suggestions, setSuggestions] = useState([])
   const [userVotes, setUserVotes] = useState({})  // { suggestion_id: vote }
@@ -32,7 +33,7 @@ const GroupPage = ({ currentUser }) => {
       const [groupData, suggestionsData, votesData] = await Promise.all([
         getGroupById(groupId),
         getSuggestions(groupId, sort),
-        getVotesByGroup(groupId, currentUser.id)
+        getVotesByGroup(groupId)
       ])
       setGroup(groupData)
       setSuggestions(suggestionsData)
@@ -41,6 +42,10 @@ const GroupPage = ({ currentUser }) => {
       votesData.forEach(v => { votesMap[v.suggestion_id] = v })
       setUserVotes(votesMap)
     } catch (err) {
+      if (err.status === 403) {
+        navigate('/dashboard')
+        return
+      }
       setError('Failed to load group data.')
     } finally {
       setIsLoading(false)
@@ -75,11 +80,7 @@ const GroupPage = ({ currentUser }) => {
 
   const handleVote = async (suggestionId, rating) => {
     try {
-      const updatedVote = await castVote({
-        suggestion_id: suggestionId,
-        user_id: currentUser.id,
-        rating
-      })
+      const updatedVote = await castVote({ suggestion_id: suggestionId, rating })
       setUserVotes(prev => ({ ...prev, [suggestionId]: updatedVote }))
 
       // Optimistically update avg_rating in the suggestions list
