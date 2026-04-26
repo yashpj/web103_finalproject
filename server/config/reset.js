@@ -30,7 +30,7 @@ async function createTables() {
         group_name VARCHAR(255) NOT NULL,
         admin_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         invite_code VARCHAR(50) UNIQUE NOT NULL,
-        voting_deadline TIMESTAMP
+        voting_deadline TIMESTAMPTZ
       );
 
       CREATE TABLE memberships (

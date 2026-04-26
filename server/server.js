@@ -92,10 +92,26 @@ if (process.env.NODE_ENV === 'production') {
 async function runMigrations() {
   try {
     await pool.query(`
-      ALTER TABLE groups ADD COLUMN IF NOT EXISTS voting_deadline TIMESTAMP;
+      ALTER TABLE groups ADD COLUMN IF NOT EXISTS voting_deadline TIMESTAMPTZ;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS github_id VARCHAR(255) UNIQUE;
       ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL;
       ALTER TABLE users ALTER COLUMN email DROP NOT NULL;
+    `)
+    // Migrate TIMESTAMP → TIMESTAMPTZ if the column still has no timezone info
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'groups'
+            AND column_name = 'voting_deadline'
+            AND data_type = 'timestamp without time zone'
+        ) THEN
+          ALTER TABLE groups
+            ALTER COLUMN voting_deadline TYPE TIMESTAMPTZ
+            USING voting_deadline AT TIME ZONE 'UTC';
+        END IF;
+      END $$;
     `)
     console.log('Migrations OK')
   } catch (err) {

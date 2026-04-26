@@ -32,7 +32,7 @@ const GroupModal = ({ mode, currentUser, onClose, onSuccess }) => {
       if (isCreate) {
         await createGroup({
           group_name: groupName.trim(),
-          voting_deadline: deadline || null
+          voting_deadline: deadline ? new Date(deadline).toISOString() : null
         })
       } else {
         await joinGroup(inviteCode.trim())

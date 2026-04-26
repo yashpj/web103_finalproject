@@ -63,7 +63,8 @@ const GroupSettings = ({ currentUser }) => {
     setDeadlineSaving(true)
     setActionError(null)
     try {
-      const updated = await updateDeadline(groupId, deadlineInput || null)
+      const utcDeadline = deadlineInput ? new Date(deadlineInput).toISOString() : null
+      const updated = await updateDeadline(groupId, utcDeadline)
       setGroup(prev => ({ ...prev, voting_deadline: updated.voting_deadline }))
       setDeadlineInput('')
     } catch (err) {
