@@ -5,3 +5,9 @@ export const searchMovies = async (query) => {
   if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
+
+export const getMovieDetails = async (tmdbId) => {
+  const res = await fetch(`${BASE_URL}/movies/${tmdbId}`)
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}
