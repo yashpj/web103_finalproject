@@ -15,8 +15,16 @@ const GroupSettings = ({ currentUser }) => {
   const loadGroup = async () => {
     try {
       const data = await getGroupById(groupId)
+      if (data.admin_id !== currentUser.id) {
+        navigate(`/groups/${groupId}`)
+        return
+      }
       setGroup(data)
     } catch (err) {
+      if (err.status === 403) {
+        navigate('/dashboard')
+        return
+      }
       setError('Failed to load group settings.')
     } finally {
       setIsLoading(false)
@@ -30,7 +38,7 @@ const GroupSettings = ({ currentUser }) => {
   const handleRemoveMember = async (userId) => {
     setActionError(null)
     try {
-      await removeMember(groupId, userId, currentUser.id)
+      await removeMember(groupId, userId)
       setGroup(prev => ({
         ...prev,
         members: prev.members.filter(m => m.id !== userId)
@@ -44,7 +52,7 @@ const GroupSettings = ({ currentUser }) => {
     if (!window.confirm(`Delete "${group.group_name}"? This cannot be undone.`)) return
     setActionError(null)
     try {
-      await deleteGroup(groupId, currentUser.id)
+      await deleteGroup(groupId)
       navigate('/dashboard')
     } catch (err) {
       setActionError(err.message)
@@ -55,7 +63,8 @@ const GroupSettings = ({ currentUser }) => {
     setDeadlineSaving(true)
     setActionError(null)
     try {
-      const updated = await updateDeadline(groupId, currentUser.id, deadlineInput || null)
+      const utcDeadline = deadlineInput ? new Date(deadlineInput).toISOString() : null
+      const updated = await updateDeadline(groupId, utcDeadline)
       setGroup(prev => ({ ...prev, voting_deadline: updated.voting_deadline }))
       setDeadlineInput('')
     } catch (err) {

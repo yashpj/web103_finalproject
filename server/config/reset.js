@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs'
 import { pool } from './database.js'
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
@@ -18,7 +19,9 @@ async function createTables() {
       CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(255) NOT NULL UNIQUE,
-        email VARCHAR(255) NOT NULL UNIQUE,
+        email VARCHAR(255) UNIQUE,
+        password_hash TEXT,
+        github_id VARCHAR(255) UNIQUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -27,7 +30,7 @@ async function createTables() {
         group_name VARCHAR(255) NOT NULL,
         admin_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         invite_code VARCHAR(50) UNIQUE NOT NULL,
-        voting_deadline TIMESTAMP
+        voting_deadline TIMESTAMPTZ
       );
 
       CREATE TABLE memberships (
@@ -60,13 +63,15 @@ async function createTables() {
 
     console.log('Tables created successfully')
 
-    // Seed users
-    await pool.query(`
-      INSERT INTO users (username, email) VALUES
-      ('alice', 'alice@example.com'),
-      ('bob', 'bob@example.com'),
-      ('charlie', 'charlie@example.com')
-    `)
+    // Seed users (password: "password123" for all seed accounts)
+    const hash = await bcrypt.hash('password123', 12)
+    await pool.query(
+      `INSERT INTO users (username, email, password_hash) VALUES
+       ('alice',   'alice@example.com',   $1),
+       ('bob',     'bob@example.com',     $1),
+       ('charlie', 'charlie@example.com', $1)`,
+      [hash]
+    )
 
     // Seed groups
     await pool.query(`

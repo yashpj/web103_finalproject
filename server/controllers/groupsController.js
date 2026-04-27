@@ -2,7 +2,7 @@ import { pool } from '../config/database.js'
 
 // GET /api/users/:userId/groups — all groups a user belongs to
 export const getUserGroups = async (req, res) => {
-  const { userId } = req.params
+  const userId = req.user.id
   try {
     const result = await pool.query(`
       SELECT
@@ -22,9 +22,10 @@ export const getUserGroups = async (req, res) => {
   }
 }
 
-// GET /api/groups/:id — single group with its members
+// GET /api/groups/:id — single group with its members (membership required)
 export const getGroupById = async (req, res) => {
   const { id } = req.params
+  const userId = req.user.id
   try {
     const groupResult = await pool.query(
       'SELECT * FROM groups WHERE id = $1',
@@ -32,6 +33,14 @@ export const getGroupById = async (req, res) => {
     )
     if (groupResult.rows.length === 0) {
       return res.status(404).json({ error: 'Group not found' })
+    }
+
+    const memberCheck = await pool.query(
+      'SELECT id FROM memberships WHERE user_id = $1 AND group_id = $2',
+      [userId, id]
+    )
+    if (memberCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'You are not a member of this group.' })
     }
 
     const membersResult = await pool.query(`
@@ -59,11 +68,12 @@ export const getGroupById = async (req, res) => {
   }
 }
 
-// POST /api/groups — create a new group, auto-enroll the admin
+// POST /api/groups — create a new group, auto-enroll the creator as admin
 export const createGroup = async (req, res) => {
-  const { group_name, admin_id, voting_deadline } = req.body
-  if (!group_name || !admin_id) {
-    return res.status(400).json({ error: 'Group name and admin ID are required.' })
+  const { group_name, voting_deadline } = req.body
+  const adminId = req.user.id
+  if (!group_name) {
+    return res.status(400).json({ error: 'Group name is required.' })
   }
 
   const invite_code = Math.random().toString(36).substring(2, 8).toUpperCase()
@@ -73,13 +83,13 @@ export const createGroup = async (req, res) => {
 
     const groupResult = await client.query(
       'INSERT INTO groups (group_name, admin_id, invite_code, voting_deadline) VALUES ($1, $2, $3, $4) RETURNING *',
-      [group_name.trim(), admin_id, invite_code, voting_deadline || null]
+      [group_name.trim(), adminId, invite_code, voting_deadline || null]
     )
     const newGroup = groupResult.rows[0]
 
     await client.query(
       'INSERT INTO memberships (user_id, group_id) VALUES ($1, $2)',
-      [admin_id, newGroup.id]
+      [adminId, newGroup.id]
     )
 
     await client.query('COMMIT')
@@ -94,9 +104,10 @@ export const createGroup = async (req, res) => {
 
 // POST /api/groups/join — join a group by invite code
 export const joinGroup = async (req, res) => {
-  const { user_id, invite_code } = req.body
-  if (!user_id || !invite_code) {
-    return res.status(400).json({ error: 'User ID and invite code are required.' })
+  const { invite_code } = req.body
+  const userId = req.user.id
+  if (!invite_code) {
+    return res.status(400).json({ error: 'Invite code is required.' })
   }
 
   try {
@@ -112,7 +123,7 @@ export const joinGroup = async (req, res) => {
 
     const existing = await pool.query(
       'SELECT id FROM memberships WHERE user_id = $1 AND group_id = $2',
-      [user_id, group.id]
+      [userId, group.id]
     )
     if (existing.rows.length > 0) {
       return res.status(409).json({ error: 'You are already a member of this group.' })
@@ -120,7 +131,7 @@ export const joinGroup = async (req, res) => {
 
     await pool.query(
       'INSERT INTO memberships (user_id, group_id) VALUES ($1, $2)',
-      [user_id, group.id]
+      [userId, group.id]
     )
 
     res.status(201).json({ message: 'Joined group successfully', group })
@@ -132,7 +143,7 @@ export const joinGroup = async (req, res) => {
 // DELETE /api/groups/:groupId/members/:userId — admin removes a member
 export const removeMember = async (req, res) => {
   const { groupId, userId } = req.params
-  const { admin_id } = req.body
+  const adminId = req.user.id
 
   try {
     const groupResult = await pool.query(
@@ -142,10 +153,10 @@ export const removeMember = async (req, res) => {
     if (groupResult.rows.length === 0) {
       return res.status(404).json({ error: 'Group not found' })
     }
-    if (groupResult.rows[0].admin_id !== parseInt(admin_id)) {
+    if (groupResult.rows[0].admin_id !== adminId) {
       return res.status(403).json({ error: 'Only the group admin can remove members.' })
     }
-    if (parseInt(userId) === parseInt(admin_id)) {
+    if (parseInt(userId) === adminId) {
       return res.status(400).json({ error: 'Admin cannot remove themselves.' })
     }
 
@@ -166,14 +177,15 @@ export const removeMember = async (req, res) => {
 // PUT /api/groups/:id/deadline — admin sets or clears the voting deadline
 export const updateDeadline = async (req, res) => {
   const { id } = req.params
-  const { admin_id, voting_deadline } = req.body
+  const { voting_deadline } = req.body
+  const adminId = req.user.id
 
   try {
     const groupResult = await pool.query('SELECT admin_id FROM groups WHERE id = $1', [id])
     if (groupResult.rows.length === 0) {
       return res.status(404).json({ error: 'Group not found' })
     }
-    if (groupResult.rows[0].admin_id !== parseInt(admin_id)) {
+    if (groupResult.rows[0].admin_id !== adminId) {
       return res.status(403).json({ error: 'Only the group admin can update the deadline.' })
     }
 
@@ -190,7 +202,7 @@ export const updateDeadline = async (req, res) => {
 // DELETE /api/groups/:id — admin deletes the group
 export const deleteGroup = async (req, res) => {
   const { id } = req.params
-  const { admin_id } = req.body
+  const adminId = req.user.id
 
   try {
     const groupResult = await pool.query(
@@ -200,7 +212,7 @@ export const deleteGroup = async (req, res) => {
     if (groupResult.rows.length === 0) {
       return res.status(404).json({ error: 'Group not found' })
     }
-    if (groupResult.rows[0].admin_id !== parseInt(admin_id)) {
+    if (groupResult.rows[0].admin_id !== adminId) {
       return res.status(403).json({ error: 'Only the group admin can delete the group.' })
     }
 
