@@ -48,9 +48,9 @@ Complete the checklist below detailing each baseline, custom, and stretch featur
 ### Custom Features
 
 - [x] The project gracefully handles errors
-- [ ] The project includes a one-to-one database relationship
+- [x] The project includes a one-to-one database relationship
 - [x] The project includes a slide-out pane or modal as appropriate for your use case that pops up and covers the page content without navigating away from the current page
-- [ ] The project includes a unique field within the join table
+- [x] The project includes a unique field within the join table
 - [x] The project includes a custom non-RESTful route with corresponding controller actions
 - [x] The user can filter or sort items based on particular criteria as appropriate for your use case
 - [ ] Data is automatically generated in response to a certain event or user action. Examples include generating a default inventory for a new user starting a game or creating a starter set of tasks for a user creating a new task app account
